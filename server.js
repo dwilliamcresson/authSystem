@@ -1,12 +1,15 @@
-var express = require('express');
-var bodyParser = require('body-parser');
-var cookieParser = require('cookie-parser');
-var session = require('express-session');
-var morgan = require('morgan');
-var User = require('./models/user');
+const express = require('express');
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
+const morgan = require('morgan');
+const user = require('./models/user');
+const mysql = require('mysql');
+const mysql2 = require('mysql2');
+const bcrypt = require('bcrypt');
 
 // invoke an instance of express application.
-var app = express();
+const app = express();
 
 // set our application port
 app.set('port', 9000);
@@ -24,8 +27,8 @@ app.use(cookieParser());
 app.use(session({
     key: 'user_sid',
     secret: 'somerandonstuffs',
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
     cookie: {
         expires: 600000
     }
@@ -36,7 +39,7 @@ app.use(session({
 // This usually happens when you stop your express server after login, your cookie still remains saved in the browser.
 app.use((req, res, next) => {
     if (req.cookies.user_sid && !req.session.user) {
-        //res.clearCookie('user_sid');        
+        res.clearCookie('user_sid');        
     }
     next();
 });
@@ -48,7 +51,6 @@ var sessionChecker = (req, res, next) => {
         res.redirect('/dashboard');
     } else {
         next();
- 
     }    
 };
 
@@ -82,24 +84,24 @@ app.route('/signup')
 
 // route for user Login
 app.route('/login')
-.get(sessionChecker, (req, res) => {
-    res.sendFile(__dirname + '/public/login.html');
-})
-.post((req, res) => {
-    var username = req.body.username,
-        password = req.body.password;
+    .get(sessionChecker, (req, res) => {
+        res.sendFile(__dirname + '/public/login.html');
+    })
+    .post((req, res) => {
+        var username = req.body.username,
+            password = req.body.password;
 
-    User.findOne({ where: { username: username } }).then(function (user) {
-        if (!user) {
-            res.redirect('/login');
-        } else if (!user.validPassword(password)) {
-            res.redirect('/login');
-        } else {
-            req.session.user = user.dataValues;
-            res.redirect('/dashboard');
-        }
+        user.findOne({ where: { username: username } }).then(function (user) {
+            if (!user) {
+                res.redirect('/login');
+            } else if (!user.validPassword(password)) {
+                res.redirect('/login');
+            } else {
+                req.session.user = user.dataValues;
+                res.redirect('/dashboard');
+            }
+        });
     });
-});
 
 
 // route for user's dashboard
@@ -107,15 +109,7 @@ app.get('/dashboard', (req, res) => {
     if (req.session.user && req.cookies.user_sid) {
         res.sendFile(__dirname + '/public/dashboard.html');
     } else {
-        res.redirect('/');
-    }  
-});
-
-app.get('/helloworld', (req, res) => {
-    if (req.session.user && req.cookies.user_sid) {
-        res.sendFile(__dirname + '/public/helloworld.html');
-    } else {
-        res.redirect('/');
+        res.redirect('/login');
     }
 });
 
@@ -126,7 +120,7 @@ app.get('/logout', (req, res) => {
         res.clearCookie('user_sid');
         res.redirect('/');
     } else {
-        res.redirect('/');
+        res.redirect('/login');
     }
 });
 
