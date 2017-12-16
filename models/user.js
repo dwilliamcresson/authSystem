@@ -22,7 +22,22 @@ const user = sequelize.define('users', {
     password: {
         type: Sequelize.STRING,
         allowNull: false
-    }
+    },
+        rewardpts: {
+            type: Sequelize.INTEGER,
+            allowNull: true
+            // ,
+            // defaultValue: '1'
+        },
+        adminflag: {
+            type: Sequelize.BOOLEAN,
+            allowNull: false
+            // ,
+            // defaultValue: 'false'
+        }
+    //defaultValue: default
+    // get: function({})
+    // set: function({})
 }, {
     hooks: {
         beforeCreate: (user) => {
@@ -37,6 +52,7 @@ user.prototype.validPassword = function (password) {
 }
 // create all the defined tables in the specified database.
 sequelize.sync()
+// sequelize.sync({force:true})
     .then(() => console.log('users table has been successfully created, if one doesn\'t exist'))
     .catch(error => console.log('This error occured', error));
 

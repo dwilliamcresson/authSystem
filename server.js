@@ -69,7 +69,7 @@ app.route('/signup')
         res.sendFile(__dirname + '/public/signup.html');
     })
     .post((req, res) => {
-        User.create({
+        user.create({
                 username: req.body.username,
                 email: req.body.email,
                 password: req.body.password
