@@ -25,15 +25,13 @@ const user = sequelize.define('users', {
     },
         rewardpts: {
             type: Sequelize.INTEGER,
-            allowNull: true
-            // ,
-            // defaultValue: '1'
+            allowNull: false,
+            defaultValue: '1'
         },
         adminflag: {
             type: Sequelize.BOOLEAN,
-            allowNull: false
-            // ,
-            // defaultValue: 'false'
+            allowNull: false,
+            defaultValue: false
         }
     //defaultValue: default
     // get: function({})
@@ -41,7 +39,7 @@ const user = sequelize.define('users', {
 }, {
     hooks: {
         beforeCreate: (user) => {
-            const salt = bcrypt.genSaltSync();
+            const salt = bcrypt.genSaltSync(10);
             user.password = bcrypt.hashSync(user.password, salt);
         }
     }
